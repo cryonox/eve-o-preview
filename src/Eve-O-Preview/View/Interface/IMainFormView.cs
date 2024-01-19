@@ -1,6 +1,9 @@
-﻿using System;
+﻿using EveOPreview.UI.Hotkeys;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace EveOPreview.View
 {
@@ -43,7 +46,12 @@ namespace EveOPreview.View
 		void RemoveThumbnails(IList<IThumbnailDescription> thumbnails);
 		void RefreshZoomSettings();
 
-		Action ApplicationExitRequested { get; set; }
+
+		 void RegisterToggle(Keys hotkey);
+		 void UnregisterToggle();
+
+
+        Action ApplicationExitRequested { get; set; }
 		Action FormActivated { get; set; }
 		Action FormMinimized { get; set; }
 		Action<ViewCloseRequest> FormCloseRequested { get; set; }

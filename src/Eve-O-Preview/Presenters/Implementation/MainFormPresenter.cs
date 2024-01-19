@@ -60,7 +60,9 @@ namespace EveOPreview.Presenters
 
 			this._mediator.Send(new StartService());
 			this._suppressSizeNotifications = false;
-		}
+
+            this.View.RegisterToggle(this._configuration.GetToggleEnableHotkey());
+        }
 
 		private void Minimize()
 		{

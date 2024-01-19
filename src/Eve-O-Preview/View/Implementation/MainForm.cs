@@ -1,5 +1,7 @@
+using EveOPreview.UI.Hotkeys;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -14,9 +16,11 @@ namespace EveOPreview.View
 		private bool _suppressEvents;
 		private Size _minimumSize;
 		private Size _maximumSize;
-		#endregion
 
-		public MainForm(ApplicationContext context)
+        private HotkeyHandler _hotkeyHandler;
+        #endregion
+
+        public MainForm(ApplicationContext context)
 		{
 			this._context = context;
 			this._zoomAnchorMap = new Dictionary<ViewZoomAnchor, RadioButton>();
@@ -177,8 +181,51 @@ namespace EveOPreview.View
 			}
 		}
 		private Color _activeClientHighlightColor;
+        public void RegisterToggle(Keys hotkey)
+        {
+            if (this._hotkeyHandler != null)
+            {
+                this.UnregisterToggle();
+            }
 
-		public new void Show()
+            if (hotkey == Keys.None)
+            {
+                return;
+            }
+
+            this._hotkeyHandler = new HotkeyHandler(this.Handle, hotkey,true);
+            this._hotkeyHandler.Pressed += ToggleEnableHandler;
+            this._hotkeyHandler.Register();
+        }
+
+        private void ToggleEnableHandler(object sender, HandledEventArgs e)
+        {
+			HotkeyHandler.Enabled = !HotkeyHandler.Enabled;
+			if (HotkeyHandler.Enabled)
+			{
+				HotkeyHandler.RegisterAll();
+			}
+			else
+			{
+
+                HotkeyHandler.UnregisterAll();
+            }
+
+            e.Handled = true;
+        }
+        public void UnregisterToggle()
+        {
+            if (this._hotkeyHandler == null)
+            {
+                return;
+            }
+
+            this._hotkeyHandler.Unregister();
+            this._hotkeyHandler.Pressed -= ToggleEnableHandler;
+            this._hotkeyHandler.Dispose();
+            this._hotkeyHandler = null;
+        }
+        public new void Show()
 		{
 			// Registers the current instance as the application's Main Form
 			this._context.MainForm = this;

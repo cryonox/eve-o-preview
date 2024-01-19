@@ -45,7 +45,8 @@ namespace EveOPreview.Configuration.Implementation
 			this.FlatLayout = new Dictionary<string, Point>();
 			this.ClientLayout = new Dictionary<string, ClientLayout>();
 			this.ClientHotkey = new Dictionary<string, string>();
-			this.DisableThumbnail = new Dictionary<string, bool>();
+			this.ToggleEnableHotkey = "";
+            this.DisableThumbnail = new Dictionary<string, bool>();
 			this.PriorityClients = new List<string>();
 
 			this.MinimizeToTray = false;
@@ -183,6 +184,8 @@ namespace EveOPreview.Configuration.Implementation
 		[JsonProperty]
 		private Dictionary<string, ClientLayout> ClientLayout { get; set; }
 		[JsonProperty]
+		private string ToggleEnableHotkey { get; set; }
+		[JsonProperty]
 		private Dictionary<string, string> ClientHotkey { get; set; }
 		[JsonProperty]
 		private Dictionary<string, bool> DisableThumbnail { get; set; }
@@ -250,8 +253,13 @@ namespace EveOPreview.Configuration.Implementation
 		{
 			this.ClientLayout[currentClient] = layout;
 		}
-
-		public Keys GetClientHotkey(string currentClient)
+        public Keys GetToggleEnableHotkey()
+        {
+			object rawValue = (new KeysConverter()).ConvertFromInvariantString(ToggleEnableHotkey);
+            return rawValue != null ? (Keys)rawValue : Keys.None;
+            
+        }
+        public Keys GetClientHotkey(string currentClient)
 		{
 			string hotkey;
 			if (this.ClientHotkey.TryGetValue(currentClient, out hotkey))

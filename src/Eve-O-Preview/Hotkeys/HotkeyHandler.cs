@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Forms;
 using System.ComponentModel;
+using System.Collections.Generic;
 
 namespace EveOPreview.UI.Hotkeys
 {
@@ -10,11 +11,13 @@ namespace EveOPreview.UI.Hotkeys
 		private const int MAX_ID = 0xBFFF;
 
 		#region Private fields
+		private bool _shouldNotUnregister;
 		private readonly int _hotkeyId;
 		private readonly IntPtr _hotkeyTarget;
 		#endregion
-
-		public HotkeyHandler(IntPtr target, Keys hotkey)
+		public static bool Enabled { get; set; } = true;
+		public static List<HotkeyHandler> KnownHandlers= new List<HotkeyHandler>();
+		public HotkeyHandler(IntPtr target, Keys hotkey,bool shouldNotUnregister=false)
 		{
 			this._hotkeyId = HotkeyHandler._currentId;
 			HotkeyHandler._currentId = (HotkeyHandler._currentId + 1) & HotkeyHandler.MAX_ID;
@@ -25,7 +28,10 @@ namespace EveOPreview.UI.Hotkeys
 			this.IsRegistered = false;
 
 			this.KeyCode = hotkey;
-		}
+			_shouldNotUnregister = shouldNotUnregister;
+
+            KnownHandlers.Add(this);
+        }
 
 		public void Dispose()
 		{
@@ -36,10 +42,28 @@ namespace EveOPreview.UI.Hotkeys
 		~HotkeyHandler()
 		{
 			// Unregister the hotkey if necessary
-			this.Unregister();
-		}
+			KnownHandlers.Remove(this);
 
-		public bool IsRegistered { get; private set; }
+            this.Unregister();
+		}
+        public static void RegisterAll()
+        {
+            foreach (var handler in KnownHandlers)
+            {
+				handler.Register();
+            }
+        }
+        public static void UnregisterAll()
+		{
+            foreach (var handler in KnownHandlers)
+            {
+				if(!handler._shouldNotUnregister)
+					handler.Unregister();
+            }
+        }
+
+
+        public bool IsRegistered { get; private set; }
 
 		public Keys KeyCode { get; private set; }
 
@@ -120,13 +144,13 @@ namespace EveOPreview.UI.Hotkeys
 		#endregion
 
 		private bool OnPressed()
-		{
-			// Fire the event if we can
-			HandledEventArgs handledEventArgs = new HandledEventArgs(false);
-			this.Pressed?.Invoke(this, handledEventArgs);
+        {
+            // Fire the event if we can
+            HandledEventArgs handledEventArgs = new HandledEventArgs(false);
+            this.Pressed?.Invoke(this, handledEventArgs);
 
-			// Return whether we handled the event or not
-			return handledEventArgs.Handled;
-		}
+            // Return whether we handled the event or not
+            return handledEventArgs.Handled;
+        }
 	}
 }

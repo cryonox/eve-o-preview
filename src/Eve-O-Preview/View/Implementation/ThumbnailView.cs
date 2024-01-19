@@ -512,11 +512,12 @@ namespace EveOPreview.View
 
 		private void HotkeyPressed_Handler(object sender, HandledEventArgs e)
 		{
-			this.SetHighlight();
-			this.ThumbnailActivated?.Invoke(this.Id);
 
-			e.Handled = true;
-		}
+            this.SetHighlight();
+            this.ThumbnailActivated?.Invoke(this.Id);
+
+            e.Handled = true;
+        }
 		#endregion
 
 		#region Custom Mouse mode
