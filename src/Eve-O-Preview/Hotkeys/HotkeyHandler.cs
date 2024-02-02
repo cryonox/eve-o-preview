@@ -2,6 +2,7 @@ using System;
 using System.Windows.Forms;
 using System.ComponentModel;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace EveOPreview.UI.Hotkeys
 {
@@ -10,8 +11,8 @@ namespace EveOPreview.UI.Hotkeys
 		private static int _currentId;
 		private const int MAX_ID = 0xBFFF;
 
-		#region Private fields
-		private bool _shouldNotUnregister;
+        #region Private fields
+        private bool _shouldNotUnregister;
 		private readonly int _hotkeyId;
 		private readonly IntPtr _hotkeyTarget;
 		#endregion
@@ -42,7 +43,6 @@ namespace EveOPreview.UI.Hotkeys
 		~HotkeyHandler()
 		{
 			// Unregister the hotkey if necessary
-			KnownHandlers.Remove(this);
 
             this.Unregister();
 		}
@@ -54,12 +54,15 @@ namespace EveOPreview.UI.Hotkeys
             }
         }
         public static void UnregisterAll()
-		{
-            foreach (var handler in KnownHandlers)
+        {
+            for (int x = KnownHandlers.Count - 1; x > -1; x--)
             {
-				if(!handler._shouldNotUnregister)
-					handler.Unregister();
+				if (!KnownHandlers[x]._shouldNotUnregister)
+				{
+					KnownHandlers[x].Unregister(true);
+                }
             }
+
         }
 
 
@@ -103,8 +106,8 @@ namespace EveOPreview.UI.Hotkeys
 							 | (this.KeyCode.HasFlag(Keys.Control) ? HotkeyHandlerNativeMethods.MOD_CONTROL : 0)
 							 | (this.KeyCode.HasFlag(Keys.Shift) ? HotkeyHandlerNativeMethods.MOD_SHIFT : 0);
 
-			// Register the hotkey
-			if (!HotkeyHandlerNativeMethods.RegisterHotKey(this._hotkeyTarget, this._hotkeyId, modifiers, key))
+            // Register the hotkey
+            if (!HotkeyHandlerNativeMethods.RegisterHotKey(this._hotkeyTarget, this._hotkeyId, modifiers, key))
 			{
 				return false;
 			}
@@ -113,19 +116,28 @@ namespace EveOPreview.UI.Hotkeys
 
 			this.IsRegistered = true;
 
-			// We successfully registered
-			return true;
+			if (!KnownHandlers.Contains(this))
+			{
+				KnownHandlers.Add(this);
+			}
+            // We successfully registered
+            return true;
 		}
 
-		public void Unregister()
+		public void Unregister(bool dont_remove=false)
 		{
-			// Check that we have registered
-			if (!this.IsRegistered)
+
+            if (!dont_remove)
+            {
+                KnownHandlers.Remove(this);
+            }
+
+            // Check that we have registered
+            if (!this.IsRegistered)
 			{
 				return;
 			}
-
-			this.IsRegistered = false;
+            this.IsRegistered = false;
 
 			Application.RemoveMessageFilter(this);
 
